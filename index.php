@@ -1,7 +1,5 @@
 <?php
 $pageTitle = 'Списък';
-$message = '';
-$messageForDel = '';
 require_once 'includes'.DIRECTORY_SEPARATOR.'header.php';
 require_once 'includes'.DIRECTORY_SEPARATOR.'connection.php';
 $query = 'SELECT books.book_title, authors.author_id, authors.author_name FROM	books
