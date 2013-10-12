@@ -7,7 +7,7 @@ if ($_POST) {
 		$error = false;
 		$name = trim($_POST['name']);
 		if (mb_strlen($name, 'UTF-8') < 3 || mb_strlen($name, 'UTF-8') > 250) {
-			echo '<p>Името трябва да е между 3 и 250 символа</p>'."\n";
+			echo '	<p>Името трябва да е между 3 и 250 символа</p>'."\n";
 			$error = true;
 		}
 		else {
@@ -27,7 +27,7 @@ if ($_POST) {
 			}
 			call_user_func_array(array($stmt, 'bind_result'), $fields);
 			while (mysqli_stmt_fetch($stmt)) {
-				echo '<p>Автора вече съществува.</p>'."\n";
+				echo '	<p>Автора вече съществува.</p>'."\n";
 				$error = true;
 			}
 		}
@@ -48,17 +48,28 @@ if ($_POST) {
 			require_once 'includes'.DIRECTORY_SEPARATOR.'footer.php';
 			exit;
 		}
-		echo '<p>Записа е успешен</p>'."\n";
+		echo '	<p>Записа е успешен</p>'."\n";
 		$name = '';
 	}
 }
 ?>
-	<div>
-		<a href="index.php">Обратно към списъка с книгите</a>
-	</div>
-	<form method="POST" action="new_author.php">
-		<div>Име:<input type="text" name="name" value="<?= (isset($name)) ? $name : '';?>"/></div>
-		<div><input type="submit" name="submit" value="Запис" /></div>
-	</form>
+		<div>
+			<a href="index.php">Обратно към списъка с книгите</a>
+		</div>
+		<form method="POST" action="new_author.php">
+			<div>Име:<input type="text" name="name" value="<?= (isset($name)) ? $name : '';?>"/></div>
+			<div><input type="submit" name="submit" value="Запис" /></div>
+		</form>
 <?php
+$query = 'SELECT * FROM authors';
+$q = mysqli_query($connection, $query);
+while($row = mysqli_fetch_assoc($q)) {
+	$result[$row['author_id']]= $row['author_name'];
+}
+echo '		<table border="1">'."\n";
+echo '			<tr><td>Автори</td></tr>'."\n";
+foreach ($result as $key => $value) {
+	echo '			<tr><td><a href="books_from_author.php?author='.$key.'">'.$value.'</a></td></tr>'."\n";
+}
+echo '		</table>'."\n";
 require_once 'includes'.DIRECTORY_SEPARATOR.'footer.php';
