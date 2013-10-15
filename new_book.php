@@ -1,89 +1,134 @@
 <?php
 $pageTitle = 'Добавяне на книга';
-$message = '';
-$messageForDel = '';
-$selectTitle = 'Избери';
-$group = '0';
 require_once 'includes'.DIRECTORY_SEPARATOR.'header.php';
-require_once 'includes'.DIRECTORY_SEPARATOR.'conection.php';
-$result = mysqli_query($connection,"SELECT * FROM groups");
-while($row = mysqli_fetch_array($result))
-{
-	$groups [$row['groups_id']]=$row['group'];
+require_once 'includes'.DIRECTORY_SEPARATOR.'connection.php';
+require_once 'includes'.DIRECTORY_SEPARATOR.'functions.php';
+$query = 'SELECT * FROM authors';
+$q = mysqli_query($connection, $query);
+while($row = mysqli_fetch_assoc($q)) {
+	$result[$row['author_id']]= $row['author_name'];
 }
-$query = 'SELECT user_id FROM users WHERE username="'.$username.'"';
-$result = mysqli_query($connection, $query);
-$user_id=mysqli_fetch_array($result)['user_id'];
+//echo '<pre>'.print_r($result, true). '</pre>';
 if ($_POST) {
-	if (isset($_POST['title']) && isset($_POST['message'])) {
-		$error = false;
+	$error = false;
+	if (isset($_POST['title'])) {
 		$title = trim($_POST['title']);
-		if (mb_strlen($title, 'UTF-8') < 1 || mb_strlen($title, 'UTF-8') > 50) {
-			echo 'Заглавието трябва да е между 1 и 50 символа</br>'."\n";
+		if (mb_strlen($title, 'UTF-8') < 3 || mb_strlen($title, 'UTF-8') > 250) {
+			echo 'Заглавието трябва да е между 3 и 250 символа</br>'."\n";
 			$error = true;
 		}
 		else {
-			mysqli_real_escape_string($connection, $title);
+			$title = mysqli_real_escape_string($connection, $title);
+			$stmt = mysqli_prepare($connection, 'SELECT book_title FROM books WHERE book_title =?');
+			if (!$stmt) {
+				echo mysqli_error($connection);
+				exit;
+			}
+			else {
+				mysqli_stmt_bind_param($stmt, 's', $title);
+				mysqli_stmt_execute($stmt);
+				$rows = mysqli_stmt_result_metadata($stmt);
+				while ($field = mysqli_fetch_field($rows)) {
+					$fields[] = &$row[$field->name];
+				}
+				call_user_func_array(array($stmt, 'bind_result'), $fields);
+				while (mysqli_stmt_fetch($stmt)) {
+					echo '	<p>Заглавието вече съществува.</p>'."\n";
+					$error = true;
+				}
+			}
 		}
-		$message = trim($_POST['message']);
-		if (mb_strlen($message, 'UTF-8') < 1 || mb_strlen($message, 'UTF-8') > 250) {
-			echo 'Съобщението трябва да е между 1 и 250 символа</br>'."\n";
-			$error = true;
+	}
+	if (isset($_POST['authors'])) {
+		$authors_id = $_POST['authors'];
+		//$authors_id[] = '22';
+		//echo '<pre>'.print_r($authors_id, true). '</pre>';
+		foreach ($authors_id as $key => $author_id) {
+			$authors_id[$key] = mysqli_real_escape_string($connection, $author_id);
+			$stmt = mysqli_prepare($connection, 'SELECT `author_id` FROM `authors` WHERE `author_id` =?');
+			if (!$stmt) {
+				echo mysqli_error($connection);
+				exit;
+			}
+			else {
+				mysqli_stmt_bind_param($stmt, 'i', $author_id);
+				mysqli_stmt_execute($stmt);
+				$rows = mysqli_stmt_get_result($stmt);
+				$row_cnt = mysqli_num_rows($rows);
+				if ($row_cnt == 0) {
+					$error = true;
+				}
+			}
 		}
-		else {
-			mysqli_real_escape_string($connection, $message);
-		}
-		$group = trim($_POST['group']);
+	}
+	else {
+		echo 'Изберете автор/и';
+		$error = true;
 	}
 	if (!$error) {
-		$group = (int)$group;
-		$user_id = (int)$user_id;
-		echo $user_id.' '.$group.' '.$title.' '.$message;
-		var_dump($user_id);
-		var_dump($group);
-		echo 'shte prepare';
-		if (!($stmt = mysqli_prepare($connection, 'INSERT INTO messages(user_id, `group`, title, message) VALUES (?, ?, ?, ?)'))) {
-			//echo mysqli_error($connection);
-			//echo "Prepare failed: (" . $mysqli->errno . ") " . $mysqli->error;
-			header('error.php?message=databaseerror');
+		if (!($stmt = mysqli_prepare($connection, 'INSERT INTO books(book_title) VALUES (?)'))) {
+			echo "Prepare failed: (" . $mysqli->errno . ") " . $mysqli->error;
+			require_once 'includes'.DIRECTORY_SEPARATOR.'footer.php';
 			exit;
 		}
-		echo 'shte bindwam';
-		if (!$stmt->bind_param("iiss", $user_id, $group, $title, $message)) {
+		if (!$stmt->bind_param("s", $title)) {
 			echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+			require_once 'includes'.DIRECTORY_SEPARATOR.'footer.php';
+			exit;
 		}
-		echo 'shte zapiswam';
 		if (!$stmt->execute()) {
 			echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+			require_once 'includes'.DIRECTORY_SEPARATOR.'footer.php';
+			exit;
 		}
-		echo 'Записа е успешен';
-		header('Location: messages.php');
-		exit;
+		echo '	<p>Заглавието е записано успешно</p>'."\n";
+		$title_id = mysqli_insert_id($connection);
+		foreach ($authors_id as $author_id) {
+			if (!($stmt = mysqli_prepare($connection, 'INSERT INTO `books_authors` (book_id, author_id) VALUES (?, ?)'))) {
+				delete_row ($title_id);
+				echo "Prepare failed: (" . $mysqli->errno . ") " . $mysqli->error;
+				require_once 'includes'.DIRECTORY_SEPARATOR.'footer.php';
+				exit;
+			}
+			if (!$stmt->bind_param("ii", $title_id, $author_id)) {
+				delete_row ($title_id);
+				echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+				require_once 'includes'.DIRECTORY_SEPARATOR.'footer.php';
+				exit;
+			}
+			if (!$stmt->execute()) {
+				delete_row ($title_id);
+				echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+				require_once 'includes'.DIRECTORY_SEPARATOR.'footer.php';
+				exit;
+			}
+		}
+		echo '	<p>Авторите са асоциирани успешно</p>'."\n";
+		unset ($title);
+		unset($authors_id);
 	}
 }
-
 ?>
 	<div>
-		<a href="destroy.php">Изход</a>
+		<a href="index.php">Обратно към списъка с книгите</a>
 	</div>
-	<div>
-		<a href="messages.php">Обратно към съобщенията</a>
-	</div>
-	<form method="POST" action="new_message.php" id="new_message">
-		<div>Тема: <select name="group">
+	<form method="POST" action="new_book.php">
+		<div>Заглавие:<input type="text" name="title" value="<?= (isset($title)) ? $title : '';?>"/></div>
+		<div>Автор/и: <select multiple name="authors[]">
 				<?php 
-					echo'<option value="0">'.$selectTitle.'</option>'."\n";
-					foreach ($groups as $key=>$value) {
+					foreach ($result as $key=>$value) {
 						echo'				<option value="'.$key.'"';
-						if ($group==$key){
-							echo 'selected';
+						if (isset($authors_id)) {
+							foreach ($authors_id as $value_selected) {
+								if ($value_selected==$key){
+									echo 'selected';
+								}
+							}
 						}
 						echo '>'.$value.'</option>'."\n";
 					}
 				?>
 			</select></div>
-		<div>Заглавие:<input type="text" name="title" value="<?= (isset($title)) ? $title : '';?>"/></div>
-		<textarea rows="4" cols="50" name="message" form="new_message"><?= (isset($message)) ? $message : '';?></textarea>
 		<div><input type="submit" name="submit" value="Запис" /></div>
 	</form>
 <?php
