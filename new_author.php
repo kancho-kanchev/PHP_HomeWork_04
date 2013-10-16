@@ -11,7 +11,7 @@ if ($_POST) {
 			$error = true;
 		}
 		else {
-			mysqli_real_escape_string($connection, $name);
+			$name = mysqli_real_escape_string($connection, $name);
 		}
 		$stmt = mysqli_prepare($connection, 'SELECT author_name FROM authors WHERE author_name =?');
 		if (!$stmt) {

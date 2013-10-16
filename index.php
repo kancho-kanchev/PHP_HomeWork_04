@@ -2,7 +2,8 @@
 $pageTitle = 'Списък';
 require_once 'includes'.DIRECTORY_SEPARATOR.'header.php';
 require_once 'includes'.DIRECTORY_SEPARATOR.'connection.php';
-$query = 'SELECT books.book_title, authors.author_id, authors.author_name FROM	books
+$query = 'SELECT books.book_title, authors.author_id, authors.author_name
+		FROM books
 		LEFT JOIN books_authors
 		INNER JOIN authors
 		ON books_authors.author_id = authors.author_id
