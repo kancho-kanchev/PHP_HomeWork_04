@@ -108,10 +108,10 @@ if ($_POST) {
 		unset($authors_id);
 	}
 }
+echo '	<div>'."\n";
+echo '			<a href="index.php">Обратно към списъка с книгите</a>'."\n";
+echo '		</div>'."\n";
 ?>
-	<div>
-		<a href="index.php">Обратно към списъка с книгите</a>
-	</div>
 	<form method="POST" action="new_book.php">
 		<div>Заглавие:<input type="text" name="title" value="<?= (isset($title)) ? $title : '';?>"/></div>
 		<div>Автор/и: <select multiple name="authors[]">

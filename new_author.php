@@ -52,10 +52,10 @@ if ($_POST) {
 		$name = '';
 	}
 }
+echo '	<div>'."\n";
+echo '			<a href="index.php">Обратно към списъка с книгите</a>'."\n";
+echo '		</div>'."\n";
 ?>
-		<div>
-			<a href="index.php">Обратно към списъка с книгите</a>
-		</div>
 		<form method="POST" action="new_author.php">
 			<div>Име:<input type="text" name="name" value="<?= (isset($name)) ? $name : '';?>"/></div>
 			<div><input type="submit" name="submit" value="Запис" /></div>

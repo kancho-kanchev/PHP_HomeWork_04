@@ -1,4 +1,7 @@
 <?php
+/*
+ * В 99,9% от случайте на localhost има постребител root  без парола.
+ */
 $connection = mysqli_connect('localhost', 'root', '', 'books');
 if (!$connection) {
 	//echo mysqli_error($connection);

@@ -34,26 +34,21 @@ if ($_GET && isset($_GET['author'])) {
 			ON ba2.book_id = b.book_id
 			WHERE ba2.author_id = '.$author_id;
 		$q = mysqli_query($connection, $query);
-
-?>	<div>
-			<a href="index.php">Обратно към списъка с книгите</a>
-		</div>
-		<div>
-			<a href="new_book.php">Добави книга</a>
-			<a href="new_author.php">Добави автор</a>
-		</div>
-<?= '		<table border="1">';?>
-			<tr>
-				<td>Книга</td>
-				<td>Автори</td>
-			</tr>
-<?php
 		$result = array();
 		while($row = mysqli_fetch_assoc($q)) {
 			$result[$row['book_title']]['book_title'] = $row['book_title'];
 			$result[$row['book_title']]['authors'][$row['author_id']] = $row['author_name'];
 		}
 		//echo '<pre>'.print_r($result, true). '</pre>';
+		echo '	<div>'."\n";
+		echo '			<a href="index.php">Обратно към списъка с книгите</a>'."\n";
+		echo '		</div>'."\n";
+		echo '		<div>'."\n";
+		echo '			<a href="new_book.php">Добави книга</a>'."\n";
+		echo '			<a href="new_author.php">Добави автор</a>'."\n";
+		echo '		</div>'."\n";
+		echo '		<table border="1">'."\n";
+		echo '			<tr><td>Книга</td><td>Автори</td></tr>'."\n";
 		foreach ($result as $value_book) {
 			echo '			<tr><td>'.$value_book['book_title'].'</td><td>';
 			$authors = array();
@@ -62,14 +57,13 @@ if ($_GET && isset($_GET['author'])) {
 			}
 			echo implode(', ', $authors).'</td></tr>'."\n";
 		}
-		echo '</table>';
+		echo '		</table>'."\n";
 	}
 	else {
-?>	<div>
-			<a href="index.php">Обратно към списъка с книгите</a>
-		</div>
-	<div>Невалиден индентификатор за автор!</div>
-<?php 
+		echo '	<div>'."\n";
+		echo '			<a href="index.php">Обратно към списъка с книгите</a>'."\n";
+		echo '		</div>'."\n";
+		echo '		<div>Невалиден индентификатор за автор!</div>'."\n";
 	}
 }
 else {

@@ -1,4 +1,7 @@
 <?php
+/*
+ * Коментара е заради енкодинга
+ */
 mb_internal_encoding('UTF-8');
 ?>
 <!DOCTYPE html>
